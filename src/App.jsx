@@ -133,10 +133,8 @@ Evidence verified. Root-cause confidence updated: ${activeScenario.initialConfid
 
   // Step 6: Test Fix Safely in Sandbox
   const handleRunSandboxTest = () => {
-    setActiveTab('remediation');
     setIncidentState('PENDING_APPROVAL');
     setCurrentStep(5);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
 
     const containerId = activeScenario?.sandbox?.containerId || 'sbx-pay-9921';
     const resultMsg = activeScenario?.sandbox?.resultMessage || '5,000 synthetic load test requests executed in sandbox. Error rate dropped 98.4% → 0.0%.';
@@ -177,7 +175,6 @@ Executing remediation verification load tests...
   const handleApproveFix = () => {
     setIncidentState('EXECUTING_FIX');
     setCurrentStep(6);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
 
     const fixTitle = activeScenario?.remediation?.actionTitle || 'Rollback Service';
     const svc = activeScenario?.affectedService || 'Payment Gateway';
