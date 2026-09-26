@@ -13,6 +13,43 @@ import BenchmarkComparison from './components/BenchmarkComparison';
 
 import { SCENARIOS_DATA } from './data/scenarios';
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Resilify Dashboard Render Error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '40px', maxWidth: '800px', margin: '60px auto', background: '#ffffff', borderRadius: '16px', border: '1px solid #fecdd3', boxShadow: '0 10px 30px rgba(244,63,94,0.1)', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#be123c', marginBottom: '12px' }}>
+            ⚠️ Resilify Dashboard Telemetry Notice
+          </h2>
+          <p style={{ color: '#475569', fontSize: '0.9rem', marginBottom: '20px' }}>
+            An unhandled interface state occurred. Resilify telemetry has isolated the error safely.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{ padding: '10px 24px', background: '#2563eb', color: '#ffffff', borderRadius: '10px', fontWeight: 700, border: 'none', cursor: 'pointer' }}
+          >
+            🔄 Reload Resilify Dashboard
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
   const [scenarios] = useState(SCENARIOS_DATA);
   const [activeScenario, setActiveScenario] = useState(SCENARIOS_DATA[0]);
@@ -202,107 +239,109 @@ Incident RESOLVED.`,
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)' }}>
-      
-      {/* Sidebar Navigation */}
-      <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
-
-      {/* Main Content Viewport */}
-      <main style={{ flex: 1, padding: '24px', overflowY: 'auto', maxWidth: '1600px' }}>
+    <ErrorBoundary>
+      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)' }}>
         
-        {/* Top Header Ribbon & Scenario Selector */}
-        <Header
-          scenarios={scenarios}
-          activeScenario={activeScenario}
-          onSelectScenario={handleSelectScenario}
-          onOpenBenchmark={() => setIsBenchmarkOpen(true)}
-          onReset={handleResetDemo}
-        />
+        {/* Sidebar Navigation */}
+        <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
 
-        {/* Tab 1: Overview Dashboard */}
-        {activeTab === 'overview' && (
-          <OverviewDashboard
-            scenario={activeScenario}
-            incidentState={incidentState}
-            currentStep={currentStep}
-            onRunProbe={handleRunProbe}
-            onRunSandboxTest={handleRunSandboxTest}
-            onApproveFix={handleApproveFix}
-            onRejectFix={handleRejectFix}
-            onSelectTab={setActiveTab}
-            onStepClick={handleStepClick}
+        {/* Main Content Viewport */}
+        <main style={{ flex: 1, padding: '24px', overflowY: 'auto', maxWidth: '1600px' }}>
+          
+          {/* Top Header Ribbon & Scenario Selector */}
+          <Header
+            scenarios={scenarios}
+            activeScenario={activeScenario}
+            onSelectScenario={handleSelectScenario}
+            onOpenBenchmark={() => setIsBenchmarkOpen(true)}
+            onReset={handleResetDemo}
           />
-        )}
 
-        {/* Tab 2: Investigation Focused Page */}
-        {activeTab === 'investigation' && (
-          <InvestigationPage
-            incident={activeScenario}
-            incidentState={incidentState}
-            currentStep={currentStep}
-            onRunProbe={handleRunProbe}
-            onRunSandboxTest={handleRunSandboxTest}
-            onStepClick={handleStepClick}
+          {/* Tab 1: Overview Dashboard */}
+          {activeTab === 'overview' && (
+            <OverviewDashboard
+              scenario={activeScenario}
+              incidentState={incidentState}
+              currentStep={currentStep}
+              onRunProbe={handleRunProbe}
+              onRunSandboxTest={handleRunSandboxTest}
+              onApproveFix={handleApproveFix}
+              onRejectFix={handleRejectFix}
+              onSelectTab={setActiveTab}
+              onStepClick={handleStepClick}
+            />
+          )}
+
+          {/* Tab 2: Investigation Focused Page */}
+          {activeTab === 'investigation' && (
+            <InvestigationPage
+              incident={activeScenario}
+              incidentState={incidentState}
+              currentStep={currentStep}
+              onRunProbe={handleRunProbe}
+              onRunSandboxTest={handleRunSandboxTest}
+              onStepClick={handleStepClick}
+            />
+          )}
+
+          {/* Tab 3: Remediation & Sandbox Approval Page */}
+          {activeTab === 'remediation' && (
+            <RemediationPage
+              incident={activeScenario}
+              incidentState={incidentState}
+              currentStep={currentStep}
+              onRunSandboxTest={handleRunSandboxTest}
+              onApproveFix={handleApproveFix}
+              onRejectFix={handleRejectFix}
+              onStepClick={handleStepClick}
+            />
+          )}
+
+          {/* Tab 4: Full Service Map Topology Page */}
+          {activeTab === 'servicemap' && (
+            <ServiceMapPage
+              incident={activeScenario}
+              isResolved={incidentState === 'RESOLVED'}
+              currentStep={currentStep}
+              onStepClick={handleStepClick}
+            />
+          )}
+
+          {/* Tab 5: Logs & Traces Explorer */}
+          {activeTab === 'logs' && (
+            <LogsTracesPage incident={activeScenario} />
+          )}
+
+          {/* Tab 6: Audit Trail Timeline */}
+          {activeTab === 'audittrail' && (
+            <AuditTrailPage auditTrail={auditTrail} />
+          )}
+
+          {/* Tab 7: Technical Details for Judges */}
+          {activeTab === 'technical' && (
+            <TechnicalDetailsPage
+              incident={activeScenario}
+              incidentState={incidentState}
+              logs={logs}
+              selectedNode={selectedNode}
+              onSelectNode={setSelectedNode}
+            />
+          )}
+
+          {/* Tab 8: System Settings */}
+          {activeTab === 'settings' && (
+            <SettingsPage />
+          )}
+
+          {/* Benchmark Matrix Modal */}
+          <BenchmarkComparison
+            isOpen={isBenchmarkOpen}
+            onClose={() => setIsBenchmarkOpen(false)}
           />
-        )}
 
-        {/* Tab 3: Remediation & Sandbox Approval Page */}
-        {activeTab === 'remediation' && (
-          <RemediationPage
-            incident={activeScenario}
-            incidentState={incidentState}
-            currentStep={currentStep}
-            onRunSandboxTest={handleRunSandboxTest}
-            onApproveFix={handleApproveFix}
-            onRejectFix={handleRejectFix}
-            onStepClick={handleStepClick}
-          />
-        )}
+        </main>
 
-        {/* Tab 4: Full Service Map Topology Page */}
-        {activeTab === 'servicemap' && (
-          <ServiceMapPage
-            incident={activeScenario}
-            isResolved={incidentState === 'RESOLVED'}
-            currentStep={currentStep}
-            onStepClick={handleStepClick}
-          />
-        )}
-
-        {/* Tab 5: Logs & Traces Explorer */}
-        {activeTab === 'logs' && (
-          <LogsTracesPage incident={activeScenario} />
-        )}
-
-        {/* Tab 6: Audit Trail Timeline */}
-        {activeTab === 'audittrail' && (
-          <AuditTrailPage auditTrail={auditTrail} />
-        )}
-
-        {/* Tab 7: Technical Details for Judges */}
-        {activeTab === 'technical' && (
-          <TechnicalDetailsPage
-            incident={activeScenario}
-            incidentState={incidentState}
-            logs={logs}
-            selectedNode={selectedNode}
-            onSelectNode={setSelectedNode}
-          />
-        )}
-
-        {/* Tab 8: System Settings */}
-        {activeTab === 'settings' && (
-          <SettingsPage />
-        )}
-
-        {/* Benchmark Matrix Modal */}
-        <BenchmarkComparison
-          isOpen={isBenchmarkOpen}
-          onClose={() => setIsBenchmarkOpen(false)}
-        />
-
-      </main>
-
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }
