@@ -215,6 +215,7 @@ Incident RESOLVED.`,
   // Step 7: Reject Fix
   const handleRejectFix = () => {
     setIncidentState('PROBED');
+    setCurrentStep(3);
     setAuditTrail(prev => [
       ...prev,
       {

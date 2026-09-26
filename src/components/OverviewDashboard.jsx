@@ -339,12 +339,28 @@ export default function OverviewDashboard({
           )}
 
           {(isPendingApproval || isExecutingFix || isResolved) && (
-            <div style={{ background: '#ffffff', border: '1px solid #bbf7d0', padding: '12px 16px', borderRadius: '12px', marginBottom: '14px' }}>
-              <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#047857' }}>
-                🟢 Sandbox verification passed ({scenario.sandbox.containerId})
+            <div style={{ background: '#ffffff', border: '1.5px solid #a7f3d0', padding: '14px 18px', borderRadius: '12px', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#047857' }}>
+                  🟢 Sandbox Verification Passed ({scenario?.sandbox?.containerId || 'sbx-pay-9921'})
+                </div>
+                <span className="badge-pill badge-green" style={{ fontSize: '0.68rem' }}>
+                  SIMULATED SANDBOX TELEMETRY
+                </span>
               </div>
-              <div style={{ fontSize: '0.78rem', color: '#15803d', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
-                {scenario.sandbox.resultMessage}
+              <div style={{ fontSize: '0.78rem', color: '#15803d', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
+                {scenario?.sandbox?.resultMessage || '5,000 synthetic load test requests executed in sandbox. Error rate dropped 98.4% → 0.0%.'}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', fontSize: '0.75rem' }}>
+                <div style={{ background: '#f0fdf4', padding: '6px 10px', borderRadius: '6px', color: '#166534' }}>
+                  Error Rate: <strong>{scenario?.metrics?.failedRequests} → 0.0%</strong>
+                </div>
+                <div style={{ background: '#f0fdf4', padding: '6px 10px', borderRadius: '6px', color: '#166534' }}>
+                  Response Time: <strong>{scenario?.metrics?.responseTime} → 18ms</strong>
+                </div>
+                <div style={{ background: '#f0fdf4', padding: '6px 10px', borderRadius: '6px', color: '#166534' }}>
+                  Status: <strong>HTTP 200 OK (5/5)</strong>
+                </div>
               </div>
             </div>
           )}
