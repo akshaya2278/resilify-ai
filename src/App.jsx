@@ -136,6 +136,7 @@ Evidence verified. Root-cause confidence updated: ${activeScenario.initialConfid
     setActiveTab('remediation');
     setIncidentState('TESTING_SANDBOX');
     setCurrentStep(4);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 
     setTimeout(() => {
       setIncidentState('PENDING_APPROVAL');
@@ -176,6 +177,7 @@ Executing remediation verification load tests...
   const handleApproveFix = () => {
     setIncidentState('EXECUTING_FIX');
     setCurrentStep(6);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 
     setTimeout(() => {
       setIncidentState('RESOLVED');
