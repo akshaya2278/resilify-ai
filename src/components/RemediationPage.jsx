@@ -58,24 +58,6 @@ export default function RemediationPage({
           <strong>Why?</strong> "{remediation.why || remediation.reason || 'High confidence root cause identified by AI engine.'}"
         </p>
 
-        {/* Step 1: Action Trigger for Sandbox Test if in initial/probed state */}
-        {(isTriggered || isProbed) && (
-          <div style={{ background: '#f8fafc', border: '1.5px solid #cbd5e1', padding: '18px', borderRadius: '14px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-dark)' }}>
-                Step 1: Test Remediation in Isolated Sandbox
-              </div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                Clones the container image into an isolated environment to verify that error rate drops to 0.0% before human approval.
-              </div>
-            </div>
-
-            <button className="btn-resilify-primary" onClick={onRunSandboxTest} style={{ padding: '12px 20px', fontSize: '0.9rem' }}>
-              <ShieldCheck size={18} /> [ Test Fix Safely ]
-            </button>
-          </div>
-        )}
-
         {/* Step 2: Sandbox Progress Indicator (Yellow testing box) */}
         {isTestingSandbox && (
           <div style={{ background: '#fffbe6', border: '1.5px solid #fef3c7', padding: '16px', borderRadius: '14px', color: '#b45309', fontWeight: 700, marginBottom: '20px' }}>
@@ -143,37 +125,77 @@ export default function RemediationPage({
           </div>
         )}
 
-        {/* Step 4: Explicit Human Approval Required Gate */}
-        {isPendingApproval && (
-          <div style={{ background: '#ffffff', border: '2.5px solid #2563eb', padding: '22px', borderRadius: '16px', boxShadow: '0 6px 20px rgba(37, 99, 235, 0.18)', marginBottom: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-              <div>
-                <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e40af', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  👤 Human Approval Required (Safety Gate)
-                </h4>
-                <p style={{ fontSize: '0.88rem', color: '#334155', marginTop: '4px', lineHeight: '1.4' }}>
-                  Resilify has tested the proposed fix in isolated sandbox runtime <strong>{incident?.sandbox?.containerId || 'sbx-pay-9921'}</strong>. Production execution requires explicit human SRE authorization.
-                </p>
-              </div>
-              <span className="badge-pill badge-blue" style={{ fontSize: '0.75rem', padding: '6px 12px' }}>
-                ACTION REQUIRED
-              </span>
+        {/* ALWAYS-VISIBLE Dedicated Human Approval Required Gate Box */}
+        <div style={{ 
+          background: '#ffffff', 
+          border: isPendingApproval ? '2.5px solid #2563eb' : (isResolved ? '1.5px solid #a7f3d0' : '1.5px solid #cbd5e1'), 
+          padding: '22px', 
+          borderRadius: '16px', 
+          boxShadow: isPendingApproval ? '0 6px 22px rgba(37, 99, 235, 0.18)' : '0 2px 8px rgba(0,0,0,0.04)', 
+          marginBottom: '20px' 
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '12px' }}>
+            <div>
+              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e40af', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                👤 Human Approval Gate (SRE Control Panel)
+              </h4>
+              <p style={{ fontSize: '0.88rem', color: '#334155', marginTop: '4px', lineHeight: '1.4' }}>
+                Explicit human authorization is required to apply <strong>{remediation.actionTitle || 'Rollback'} ({remediation.actionVersion || 'v2.4.0'})</strong> to production.
+              </p>
             </div>
+            
+            <span className={`badge-pill ${isResolved ? 'badge-green' : (isPendingApproval ? 'badge-blue' : 'badge-amber')}`} style={{ fontSize: '0.75rem', padding: '6px 12px' }}>
+              {isResolved ? 'APPROVED & EXECUTED' : (isPendingApproval ? 'SANDBOX PASSED — ACTION REQUIRED' : 'AWAITING ACTION')}
+            </span>
+          </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '14px', marginTop: '16px' }}>
-              <button className="btn-secondary-light" onClick={onRejectFix} style={{ padding: '10px 18px', fontWeight: 700 }}>
-                <XCircle size={18} color="#f43f5e" /> [ Reject Fix ]
+          {/* Action Buttons Group */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px', flexWrap: 'wrap' }}>
+            
+            {/* Run Sandbox Safety Test Button */}
+            {!isPendingApproval && !isExecutingFix && !isResolved && (
+              <button 
+                className="btn-secondary-light" 
+                onClick={onRunSandboxTest} 
+                style={{ padding: '12px 20px', fontWeight: 700, borderColor: '#3b82f6', color: '#2563eb', background: '#eff6ff' }}
+                title="Run container sandbox verification test"
+              >
+                <ShieldCheck size={18} color="#2563eb" /> [ 🧪 Test Fix Safely in Sandbox ]
               </button>
+            )}
+
+            {/* Do Not Approve / Reject Button */}
+            {!isResolved && (
+              <button 
+                className="btn-secondary-light" 
+                onClick={onRejectFix} 
+                style={{ padding: '12px 20px', fontWeight: 700, borderColor: '#fecdd3', color: '#be123c', background: '#fff1f2' }}
+                title="Reject proposed remediation and initiate manual takeover"
+              >
+                <XCircle size={18} color="#f43f5e" /> [ ❌ Do Not Approve / Reject Fix ]
+              </button>
+            )}
+
+            {/* Approve Fix Button */}
+            {!isResolved && (
               <button 
                 className="btn-resilify-primary" 
-                style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', padding: '12px 24px', fontSize: '0.95rem' }} 
+                style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', padding: '12px 24px', fontSize: '0.95rem', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)' }} 
                 onClick={onApproveFix}
+                title="Approve remediation and rollout to production"
               >
-                <CheckCircle2 size={18} /> [ Approve Fix ]
+                <CheckCircle2 size={18} /> [ ✅ Approve Fix & Deploy to Production ]
               </button>
-            </div>
+            )}
+
+            {isResolved && (
+              <div style={{ color: '#059669', fontWeight: 800, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <CheckCircle2 size={20} /> Approved & Rolled Out to Production
+              </div>
+            )}
+
           </div>
-        )}
+        </div>
 
         {/* Step 5: Production Execution Progress Banner */}
         {isExecutingFix && (
