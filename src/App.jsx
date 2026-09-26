@@ -133,6 +133,7 @@ Evidence verified. Root-cause confidence updated: ${activeScenario.initialConfid
 
   // Step 6: Test Fix Safely in Sandbox
   const handleRunSandboxTest = () => {
+    setActiveTab('remediation');
     setIncidentState('TESTING_SANDBOX');
     setCurrentStep(4);
 

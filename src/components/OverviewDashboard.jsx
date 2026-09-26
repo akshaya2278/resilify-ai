@@ -323,7 +323,7 @@ export default function OverviewDashboard({
           </p>
 
           {/* Test Fix Safely Button */}
-          {isProbed && (
+          {(isTriggered || isProbed) && (
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <button className="btn-resilify-primary" onClick={onRunSandboxTest}>
                 <ShieldCheck size={16} /> [ Test Fix Safely ]
@@ -339,28 +339,40 @@ export default function OverviewDashboard({
           )}
 
           {(isPendingApproval || isExecutingFix || isResolved) && (
-            <div style={{ background: '#ffffff', border: '1.5px solid #a7f3d0', padding: '14px 18px', borderRadius: '12px', marginBottom: '14px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#047857' }}>
-                  🟢 Sandbox Verification Passed ({scenario?.sandbox?.containerId || 'sbx-pay-9921'})
+            <div style={{ background: '#ffffff', border: '2px solid #a7f3d0', padding: '18px', borderRadius: '14px', marginBottom: '16px', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.08)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#047857', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <CheckCircle2 size={18} color="#059669" /> 🟢 Container Sandbox Safety Verification PASSED
                 </div>
                 <span className="badge-pill badge-green" style={{ fontSize: '0.68rem' }}>
-                  SIMULATED SANDBOX TELEMETRY
+                  SIMULATED SANDBOX TELEMETRY ({scenario?.sandbox?.containerId || 'sbx-pay-9921'})
                 </span>
               </div>
-              <div style={{ fontSize: '0.78rem', color: '#15803d', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
-                {scenario?.sandbox?.resultMessage || '5,000 synthetic load test requests executed in sandbox. Error rate dropped 98.4% → 0.0%.'}
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', fontSize: '0.75rem', marginBottom: '12px' }}>
+                <div style={{ background: '#f0fdf4', padding: '8px 10px', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+                  <div style={{ color: '#166534', fontWeight: 700, fontSize: '0.68rem' }}>Error Rate</div>
+                  <strong style={{ color: '#059669', fontSize: '0.95rem' }}>{scenario?.metrics?.failedRequests} → 0.0%</strong>
+                </div>
+                <div style={{ background: '#f0fdf4', padding: '8px 10px', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+                  <div style={{ color: '#166534', fontWeight: 700, fontSize: '0.68rem' }}>Response Time</div>
+                  <strong style={{ color: '#059669', fontSize: '0.95rem' }}>{scenario?.metrics?.responseTime} → 18ms</strong>
+                </div>
+                <div style={{ background: '#f0fdf4', padding: '8px 10px', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+                  <div style={{ color: '#166534', fontWeight: 700, fontSize: '0.68rem' }}>Health Status</div>
+                  <strong style={{ color: '#059669', fontSize: '0.85rem' }}>HTTP 200 OK (5/5)</strong>
+                </div>
+                <div style={{ background: '#f0fdf4', padding: '8px 10px', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+                  <div style={{ color: '#166534', fontWeight: 700, fontSize: '0.68rem' }}>AST Safety Gate</div>
+                  <strong style={{ color: '#059669', fontSize: '0.85rem' }}>PASSED</strong>
+                </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', fontSize: '0.75rem' }}>
-                <div style={{ background: '#f0fdf4', padding: '6px 10px', borderRadius: '6px', color: '#166534' }}>
-                  Error Rate: <strong>{scenario?.metrics?.failedRequests} → 0.0%</strong>
-                </div>
-                <div style={{ background: '#f0fdf4', padding: '6px 10px', borderRadius: '6px', color: '#166534' }}>
-                  Response Time: <strong>{scenario?.metrics?.responseTime} → 18ms</strong>
-                </div>
-                <div style={{ background: '#f0fdf4', padding: '6px 10px', borderRadius: '6px', color: '#166534' }}>
-                  Status: <strong>HTTP 200 OK (5/5)</strong>
-                </div>
+
+              {/* Terminal Log Snippet */}
+              <div style={{ background: '#0f172a', color: '#38bdf8', padding: '10px 14px', borderRadius: '8px', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', lineHeight: '1.5' }}>
+                <div>[CONTAINER START] Docker runtime booted image {scenario?.affectedService || 'Payment Gateway'} with proposed change.</div>
+                <div>[SYNTHETIC LOAD TEST] Executed 5,000 parallel test requests. Error rate: 0.00%. Latency P99: 18ms.</div>
+                <div style={{ color: '#4ade80' }}>✓ [VERIFICATION SUCCESS] {scenario?.sandbox?.resultMessage || 'All health checks passing. Safe to deploy to production.'}</div>
               </div>
             </div>
           )}
