@@ -134,43 +134,43 @@ Evidence verified. Root-cause confidence updated: ${activeScenario.initialConfid
   // Step 6: Test Fix Safely in Sandbox
   const handleRunSandboxTest = () => {
     setActiveTab('remediation');
-    setIncidentState('TESTING_SANDBOX');
-    setCurrentStep(4);
+    setIncidentState('PENDING_APPROVAL');
+    setCurrentStep(5);
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    setTimeout(() => {
-      setIncidentState('PENDING_APPROVAL');
-      setCurrentStep(5);
+    const containerId = activeScenario?.sandbox?.containerId || 'sbx-pay-9921';
+    const resultMsg = activeScenario?.sandbox?.resultMessage || '5,000 synthetic load test requests executed in sandbox. Error rate dropped 98.4% → 0.0%.';
+    const fixTitle = activeScenario?.remediation?.actionTitle || 'Rollback Service';
+    const fixVer = activeScenario?.remediation?.actionVersion || 'v2.4.0';
 
-      setLogs(prev => [
-        ...prev,
-        {
-          timestamp: new Date().toISOString().substring(11, 19) + 'Z',
-          agent: 'SANDBOX',
-          confidence: activeScenario.probedConfidence,
-          text: `[CONTAINER SANDBOX VERIFIER] Instantiated isolated Docker runtime (${activeScenario.sandbox.containerId}).
+    setLogs(prev => [
+      ...prev,
+      {
+        timestamp: new Date().toISOString().substring(11, 19) + 'Z',
+        agent: 'SANDBOX',
+        confidence: activeScenario?.probedConfidence || 94,
+        text: `[CONTAINER SANDBOX VERIFIER] Instantiated isolated Docker runtime (${containerId}).
 Executing remediation verification load tests...
-[SANDBOX SUCCESS] ${activeScenario.sandbox.resultMessage}`,
-          evidence: 'Sandbox PASSED • Human Approval Required Gate Raised'
-        }
-      ]);
+[SANDBOX SUCCESS] ${resultMsg}`,
+        evidence: 'Sandbox PASSED • Human Approval Required Gate Raised'
+      }
+    ]);
 
-      setAuditTrail(prev => [
-        ...prev,
-        {
-          timestamp: new Date().toISOString().substring(11, 19) + 'Z',
-          actor: 'AI Sandbox Verifier',
-          action: 'Sandbox verification completed',
-          result: 'PASSED (0.0% Error Rate Verified)'
-        },
-        {
-          timestamp: new Date().toISOString().substring(11, 19) + 'Z',
-          actor: 'AI Planner',
-          action: 'Fix recommended',
-          result: `${activeScenario.remediation.actionTitle} (${activeScenario.remediation.actionVersion})`
-        }
-      ]);
-    }, 2000);
+    setAuditTrail(prev => [
+      ...prev,
+      {
+        timestamp: new Date().toISOString().substring(11, 19) + 'Z',
+        actor: 'AI Sandbox Verifier',
+        action: 'Sandbox verification completed',
+        result: 'PASSED (0.0% Error Rate Verified)'
+      },
+      {
+        timestamp: new Date().toISOString().substring(11, 19) + 'Z',
+        actor: 'AI Planner',
+        action: 'Fix recommended',
+        result: `${fixTitle} (${fixVer})`
+      }
+    ]);
   };
 
   // Step 7: Approve Fix
@@ -178,6 +178,10 @@ Executing remediation verification load tests...
     setIncidentState('EXECUTING_FIX');
     setCurrentStep(6);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    const fixTitle = activeScenario?.remediation?.actionTitle || 'Rollback Service';
+    const svc = activeScenario?.affectedService || 'Payment Gateway';
+    const recovered = activeScenario?.recoveredMetrics?.failedRequests || '0.0%';
 
     setTimeout(() => {
       setIncidentState('RESOLVED');
@@ -190,8 +194,8 @@ Executing remediation verification load tests...
           agent: 'SANDBOX',
           confidence: 100,
           text: `[HUMAN APPROVAL GATE] Elena Vance authorized production remediation rollout.
-Executed ${activeScenario.remediation.actionTitle}.
-✅ Live Telemetry Verified: ${activeScenario.affectedService} error rate normalized to ${activeScenario.recoveredMetrics.failedRequests}.
+Executed ${fixTitle}.
+✅ Live Telemetry Verified: ${svc} error rate normalized to ${recovered}.
 Incident RESOLVED.`,
           evidence: 'Status: Recovered • MTTR: 3.2 minutes'
         }
@@ -203,7 +207,7 @@ Incident RESOLVED.`,
           timestamp: new Date().toISOString().substring(11, 19) + 'Z',
           actor: 'Elena Vance (Human SRE)',
           action: 'Human approval received',
-          result: `Approved ${activeScenario.remediation.actionTitle}`
+          result: `Approved ${fixTitle}`
         },
         {
           timestamp: new Date().toISOString().substring(11, 19) + 'Z',
@@ -212,7 +216,7 @@ Incident RESOLVED.`,
           result: '🟢 Incident Resolved'
         }
       ]);
-    }, 2500);
+    }, 1200);
   };
 
   // Step 7: Reject Fix
